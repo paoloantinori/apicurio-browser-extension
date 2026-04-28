@@ -40,6 +40,19 @@ window.postMessage({
 ### Demo Mode
 Append `?demo` query parameter to load with built-in OpenAPI sample content.
 
+## Build Output (`npm run build:editor`)
+
+| File | Raw Size | Gzipped |
+|------|----------|---------|
+| main.js | 4.20 MB | 564 KB |
+| styles.css | 800 KB | 86 KB |
+| scripts.js | 177 KB | 49 KB |
+| polyfills.js | 35 KB | 11 KB |
+| runtime.js | 1 KB | < 1 KB |
+| **Total** | **5.21 MB** | **711 KB** |
+
+Plus ~19 MB of font/image static assets. Total `editor/dist/` is ~24 MB.
+
 ## Key Dependencies
 - Angular 18.2.x
 - @apicurio/data-models 1.1.33

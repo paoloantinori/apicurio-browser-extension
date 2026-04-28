@@ -9,6 +9,7 @@
     "build:chrome": "tsc --noEmit && vite build --mode chrome",
     "build:firefox": "tsc --noEmit && vite build --mode firefox",
     "typecheck": "tsc --noEmit",
+    "build:editor": "cd editor && npx ng build --configuration=production",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
