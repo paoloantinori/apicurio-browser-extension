@@ -28,6 +28,14 @@ function copyEditorAssets(): Plugin {
       }
       const outDir = resolve(__dirname, "dist", target, "viewer");
       cpSync(editorDist, outDir, { recursive: true });
+
+      // Remove external CDN references from the viewer HTML
+      const indexPath = resolve(outDir, "index.html");
+      if (existsSync(indexPath)) {
+        let html = readFileSync(indexPath, "utf-8");
+        html = html.replace(/<link[^>]*unpkg\.com[^>]*>\n?/g, "");
+        writeFileSync(indexPath, html);
+      }
     },
   };
 }
