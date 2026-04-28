@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite build --watch --mode development",
-    "build": "tsc --noEmit && vite build",
-    "build:chrome": "tsc --noEmit && vite build --mode chrome",
-    "build:firefox": "tsc --noEmit && vite build --mode firefox",
+    "dev": "TARGET=chrome vite build --watch",
+    "build": "npm run build:chrome && npm run build:firefox",
+    "build:chrome": "tsc --noEmit && TARGET=chrome vite build",
+    "build:firefox": "tsc --noEmit && TARGET=firefox vite build",
     "typecheck": "tsc --noEmit",
     "build:editor": "cd editor && npx ng build --configuration=production",
     "lint": "tsc --noEmit"
