@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "Apicurio OpenAPI Visualizer",
+  "version": "0.1.0",
+  "description": "Automatically detects and renders OpenAPI specifications using Apicurio Editor on GitHub and GitLab",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "webNavigation",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://github.com/*",
+    "*://gitlab.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://github.com/*", "*://gitlab.com/*"],
+      "js": ["src/content/index.ts"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["viewer/*"],
+      "matches": ["*://github.com/*", "*://gitlab.com/*"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

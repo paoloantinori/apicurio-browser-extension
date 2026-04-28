@@ -1,0 +1,11 @@
+{
+  "background": {
+    "scripts": ["src/background/index.ts"]
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "apicurio-openapi-visualizer@apicurio.example",
+      "strict_min_version": "109.0"
+    }
+  }
+}
