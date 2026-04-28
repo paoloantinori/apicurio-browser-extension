@@ -1,6 +1,6 @@
-import { defineConfig } from "vite";
+import { defineConfig, Plugin } from "vite";
 import webExtension from "vite-plugin-web-extension";
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync, cpSync, existsSync } from "fs";
 import { resolve } from "path";
 
 const target = process.env.TARGET || "chrome";
@@ -17,12 +17,28 @@ function mergeManifest(): string {
   return outPath;
 }
 
+function copyEditorAssets(): Plugin {
+  return {
+    name: "copy-editor-assets",
+    writeBundle() {
+      const editorDist = resolve(__dirname, "editor", "dist");
+      if (!existsSync(editorDist)) {
+        console.warn("editor/dist not found — run `npm run build:editor` first");
+        return;
+      }
+      const outDir = resolve(__dirname, "dist", target, "viewer");
+      cpSync(editorDist, outDir, { recursive: true });
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [
     webExtension({
       browser: target,
       manifest: mergeManifest(),
     }),
+    copyEditorAssets(),
   ],
   build: {
     outDir: resolve(__dirname, "dist", target),

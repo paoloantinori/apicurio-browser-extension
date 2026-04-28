@@ -1,1 +1,1 @@
-export {};
+export { type ISiteAdapter } from "./types";
