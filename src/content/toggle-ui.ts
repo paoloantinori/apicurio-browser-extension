@@ -66,28 +66,39 @@ export class ToggleUI {
   // Private helpers
   // ---------------------------------------------------------------------------
 
+  private static BASE_STYLE: Record<string, string> = {
+    padding: "4px 12px",
+    borderRadius: "4px",
+    fontSize: "13px",
+    cursor: "pointer",
+  };
+
   private updateVisualState(): void {
     if (!this.button) return;
 
     this.button.setAttribute("aria-pressed", String(this.active));
+    Object.assign(this.button.style, ToggleUI.BASE_STYLE);
 
     if (this.active) {
       this.button.textContent = "Show Source";
-      this.applyActiveStyles();
+      Object.assign(this.button.style, {
+        border: "1px solid #0969da",
+        background: "#0969da",
+        color: "white",
+      });
     } else {
       this.button.textContent = "Show API View";
-      this.applyInactiveStyles();
+      Object.assign(this.button.style, {
+        border: "1px solid #d0d7de",
+        background: "white",
+        color: "#24292f",
+      });
     }
   }
 
   private applyInactiveStyles(): void {
     if (!this.button) return;
-    this.button.textContent = "Show API View";
-    Object.assign(this.button.style, {
-      padding: "4px 12px",
-      borderRadius: "4px",
-      fontSize: "13px",
-      cursor: "pointer",
+    Object.assign(this.button.style, ToggleUI.BASE_STYLE, {
       border: "1px solid #d0d7de",
       background: "white",
       color: "#24292f",
@@ -96,11 +107,7 @@ export class ToggleUI {
 
   private applyActiveStyles(): void {
     if (!this.button) return;
-    Object.assign(this.button.style, {
-      padding: "4px 12px",
-      borderRadius: "4px",
-      fontSize: "13px",
-      cursor: "pointer",
+    Object.assign(this.button.style, ToggleUI.BASE_STYLE, {
       border: "1px solid #0969da",
       background: "#0969da",
       color: "white",

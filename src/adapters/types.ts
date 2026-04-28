@@ -5,6 +5,14 @@
  * requires implementing this interface. The content script controller
  * delegates all platform-specific logic to the active adapter.
  */
+
+/** Extracts the file extension from a filename, lowercased. Returns null if none. */
+export function extractFileExtension(fileName: string): string | null {
+  const dotIndex = fileName.lastIndexOf(".");
+  if (dotIndex === -1 || dotIndex === fileName.length - 1) return null;
+  return fileName.slice(dotIndex + 1).toLowerCase();
+}
+
 export interface ISiteAdapter {
   /** Returns true only when viewing a single file (not directory, diff, or PR) */
   isFileView(): boolean;

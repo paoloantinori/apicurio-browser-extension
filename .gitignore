@@ -3,3 +3,4 @@ dist/
 .DS_Store
 editor/dist
 *.tsbuildinfo
+editor/node_modules/

@@ -57,44 +57,25 @@ export class ViewerManager {
   /** Remove the viewer and restore the native code container. */
   showSource(): void {
     this.removeViewer();
-
-    const codeContainer = this.adapter.getCodeContainer();
-    if (codeContainer) {
-      codeContainer.style.display = "";
-    }
-
-    this.isActive = false;
-  }
-
-  /**
-   * Toggle between viewer and source view.
-   * Returns the new active state (`true` = viewer visible).
-   */
-  toggle(specContent: string): boolean {
-    if (this.isActive) {
-      this.showSource();
-    } else {
-      // Fire-and-forget: callers that need to await should use showViewer() directly
-      void this.showViewer(specContent);
-    }
-    return !this.isActive;
+    this.restoreCodeContainer();
   }
 
   /** Full teardown: destroy wrapper, remove viewer, restore source. */
   cleanup(): void {
-    this.removeViewer();
-
-    const codeContainer = this.adapter.getCodeContainer();
-    if (codeContainer) {
-      codeContainer.style.display = "";
-    }
-
-    this.isActive = false;
+    this.showSource();
   }
 
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
+
+  private restoreCodeContainer(): void {
+    const codeContainer = this.adapter.getCodeContainer();
+    if (codeContainer) {
+      codeContainer.style.display = "";
+    }
+    this.isActive = false;
+  }
 
   private removeViewer(): void {
     if (this.wrapper) {

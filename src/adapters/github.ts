@@ -1,4 +1,4 @@
-import type { ISiteAdapter } from "./types";
+import { type ISiteAdapter, extractFileExtension } from "./types";
 
 /**
  * GitHub site adapter for interacting with GitHub's DOM.
@@ -136,12 +136,7 @@ export class GitHubAdapter implements ISiteAdapter {
 
   getFileExtension(): string | null {
     const fileName = this.getFileName();
-    if (!fileName) return null;
-
-    const dotIndex = fileName.lastIndexOf(".");
-    if (dotIndex === -1 || dotIndex === fileName.length - 1) return null;
-
-    return fileName.slice(dotIndex + 1).toLowerCase();
+    return fileName ? extractFileExtension(fileName) : null;
   }
 
   // ---- SPA navigation change ----
