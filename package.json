@@ -1,0 +1,23 @@
+{
+  "name": "apicurio-browser-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "tsc --noEmit && vite build",
+    "build:chrome": "tsc --noEmit && vite build --mode chrome",
+    "build:firefox": "tsc --noEmit && vite build --mode firefox",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "webextension-polyfill": "^0.12.0"
+  },
+  "devDependencies": {
+    "@types/webextension-polyfill": "^0.12.1",
+    "typescript": "^5.7.3",
+    "vite": "^6.3.4",
+    "vite-plugin-web-extension": "^4.2.0"
+  }
+}
