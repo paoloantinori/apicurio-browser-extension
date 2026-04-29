@@ -98,6 +98,72 @@
       background: #fff;
       color: #24292f;
     }
+    .token-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #d0d7de;
+      flex-shrink: 0;
+    }
+    .status-dot.connected { background: #1a7f37; }
+    .status-dot.error { background: #cf222e; }
+    .status-text { color: #656d76; }
+    .token-input-row {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+    .token-input-row input {
+      flex: 1;
+      font-size: 12px;
+      padding: 4px 8px;
+      border: 1px solid #d0d7de;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .btn-icon {
+      padding: 4px 6px;
+      border: 1px solid #d0d7de;
+      border-radius: 4px;
+      background: #f6f8fa;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+    }
+    .btn-icon:hover { background: #eaeef2; }
+    .token-actions {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .btn {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 4px;
+      border: 1px solid #d0d7de;
+      cursor: pointer;
+      background: #f6f8fa;
+    }
+    .btn:hover { background: #eaeef2; }
+    .btn-primary { background: #0969da; color: #fff; border-color: #0969da; }
+    .btn-primary:hover { background: #0550ae; }
+    .btn-danger { background: #fff; color: #cf222e; border-color: #cf222e; }
+    .btn-danger:hover { background: #fef2f2; }
+    .help-text {
+      font-size: 11px;
+      color: #656d76;
+      line-height: 1.4;
+    }
+    .help-text a { color: #0969da; text-decoration: none; }
+    .help-text a:hover { text-decoration: underline; }
+    .help-text strong { color: #24292f; }
   </style>
 </head>
 <body>
@@ -144,6 +210,27 @@
         <option value="dark">Dark</option>
       </select>
     </div>
+  </div>
+
+  <div class="setting-section" id="tokenSection">
+    <h2>GitHub Token</h2>
+    <div class="token-status" id="authStatus">
+      <span class="status-dot"></span>
+      <span class="status-text">Not configured</span>
+    </div>
+    <div class="token-input-row">
+      <input type="password" id="githubToken" placeholder="ghp_... or github_pat_..." autocomplete="off">
+      <button type="button" id="toggleTokenVisibility" class="btn-icon" aria-label="Show token" title="Show token">👁</button>
+    </div>
+    <div class="token-actions">
+      <button type="button" id="saveToken" class="btn btn-primary">Save</button>
+      <button type="button" id="clearToken" class="btn btn-danger">Clear</button>
+    </div>
+    <p class="help-text">
+      Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a>
+      with <strong>Contents: Read and write</strong> permission on the repos you want to edit.
+      Tokens are stored locally and never sent to third parties.
+    </p>
   </div>
 
   <script type="module" src="./popup.ts"></script>

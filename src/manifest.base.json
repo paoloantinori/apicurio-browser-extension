@@ -7,11 +7,13 @@
     "storage",
     "activeTab",
     "webNavigation",
-    "scripting"
+    "scripting",
+    "identity"
   ],
   "host_permissions": [
     "*://github.com/*",
-    "*://gitlab.com/*"
+    "*://gitlab.com/*",
+    "https://api.github.com/*"
   ],
   "content_scripts": [
     {

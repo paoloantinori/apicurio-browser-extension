@@ -1,11 +1,24 @@
 import browser from "webextension-polyfill";
+import {
+  setToken,
+  clearToken,
+  getAuthStatus,
+  getFileContent,
+  updateFileContent,
+} from "./github-api";
+import type { AuthStatus, FileContent, CommitResult, GitHubError } from "./github-api";
 
 // ── Message types shared with content scripts ──────────────────────────────
 
 type ExtensionMessage =
   | { type: "URL_CHANGED"; url: string }
   | { type: "SETTINGS_UPDATED" }
-  | { type: "GET_SETTINGS" };
+  | { type: "GET_SETTINGS" }
+  | { type: "github-setToken"; token: string }
+  | { type: "github-clearToken" }
+  | { type: "github-getAuthStatus" }
+  | { type: "github-getFile"; owner: string; repo: string; path: string; branch: string }
+  | { type: "github-updateFile"; owner: string; repo: string; path: string; content: string; sha: string; message: string; branch: string };
 
 // ── URL filters ────────────────────────────────────────────────────────────
 
@@ -96,13 +109,62 @@ browser.runtime.onMessage.addListener(
     _sender: browser.Runtime.MessageSender
   ): Promise<unknown> | undefined => {
     if (
-      typeof message === "object" &&
-      message !== null &&
-      "type" in message &&
-      (message as { type: string }).type === "GET_SETTINGS"
+      typeof message !== "object" ||
+      message === null ||
+      !("type" in message)
     ) {
+      return undefined;
+    }
+
+    const msg = message as { type: string; [key: string]: unknown };
+
+    // ── Existing handlers ──────────────────────────────────────────────────
+
+    if (msg.type === "GET_SETTINGS") {
       return browser.storage.sync.get(null);
     }
+
+    // ── GitHub API handlers ────────────────────────────────────────────────
+
+    if (msg.type === "github-setToken") {
+      return setToken(msg.token as string).then(() => ({ success: true }));
+    }
+
+    if (msg.type === "github-clearToken") {
+      return clearToken().then(() => ({ success: true }));
+    }
+
+    if (msg.type === "github-getAuthStatus") {
+      return getAuthStatus()
+        .then((data) => ({ success: true as const, data }))
+        .catch((err: GitHubError) => ({ success: false as const, error: err }));
+    }
+
+    if (msg.type === "github-getFile") {
+      return getFileContent(
+        msg.owner as string,
+        msg.repo as string,
+        msg.path as string,
+        msg.branch as string
+      )
+        .then((data) => ({ success: true as const, data }))
+        .catch((err: GitHubError) => ({ success: false as const, error: err }));
+    }
+
+    if (msg.type === "github-updateFile") {
+      return updateFileContent(
+        msg.owner as string,
+        msg.repo as string,
+        msg.path as string,
+        msg.content as string,
+        msg.sha as string,
+        msg.message as string,
+        msg.branch as string
+      )
+        .then((data) => ({ success: true as const, data }))
+        .catch((err: GitHubError) => ({ success: false as const, error: err }));
+    }
+
     return undefined;
   }
 );
