@@ -251,6 +251,32 @@ describe("GitLabAdapter", () => {
 
   // ---- getRepoFilePath ----
 
+  // ---- getTabContainer ----
+
+  describe("getTabContainer()", () => {
+    it("returns .file-actions when present", () => {
+      const el = stubElement("div");
+      mockDocumentWithSelectorMap({
+        ".file-actions": el,
+      });
+      expect(adapter.getTabContainer()).toBe(el);
+    });
+
+    it("returns .js-file-title as fallback", () => {
+      const el = stubElement("div");
+      mockDocumentWithSelectorMap({
+        ".file-actions": null,
+        ".js-file-title": el,
+      });
+      expect(adapter.getTabContainer()).toBe(el);
+    });
+
+    it("returns null when no selectors match", () => {
+      mockDocumentWithSelectorMap({});
+      expect(adapter.getTabContainer()).toBeNull();
+    });
+  });
+
   describe("getRepoFilePath()", () => {
     it("extracts owner, repo, branch, and filePath from blob URL", () => {
       globalThis.window = {

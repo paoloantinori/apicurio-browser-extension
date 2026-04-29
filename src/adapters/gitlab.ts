@@ -117,6 +117,19 @@ export class GitLabAdapter implements ISiteAdapter {
     });
   }
 
+  // ---- Tab container ----
+
+  getTabContainer(): HTMLElement | null {
+    const selectors = [".file-actions", ".js-file-title"];
+
+    for (const sel of selectors) {
+      const el = document.querySelector<HTMLElement>(sel);
+      if (el) return el;
+    }
+
+    return null;
+  }
+
   private getFileNameFromUrl(): string | null {
     const url = window.location.href;
     // GitLab file view pattern: /-/blob/<branch>/<path>

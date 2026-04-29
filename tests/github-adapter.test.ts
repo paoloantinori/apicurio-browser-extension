@@ -282,6 +282,23 @@ describe("GitHubAdapter", () => {
     });
   });
 
+  // ---- getTabContainer ----
+
+  describe("getTabContainer()", () => {
+    it("returns the ul[aria-label='File view'] element", () => {
+      const ul = stubElement("ul", undefined, true);
+      mockDocumentWithSelectorMap({
+        'ul[aria-label="File view"]': ul,
+      });
+      expect(adapter.getTabContainer()).toBe(ul);
+    });
+
+    it("returns null when no tab container found", () => {
+      mockDocumentWithSelectorMap({});
+      expect(adapter.getTabContainer()).toBeNull();
+    });
+  });
+
   // ---- getRepoFilePath ----
 
   describe("getRepoFilePath()", () => {

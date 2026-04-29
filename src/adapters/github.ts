@@ -159,6 +159,15 @@ export class GitHubAdapter implements ISiteAdapter {
     return null;
   }
 
+  // ---- Tab container ----
+
+  getTabContainer(): HTMLElement | null {
+    // GitHub's Code/Blame SegmentedControl
+    const tabList = document.querySelector('ul[aria-label="File view"]');
+    if (tabList instanceof HTMLElement) return tabList;
+    return null;
+  }
+
   // ---- SPA navigation change ----
 
   onNavigationChange(callback: (url: string) => void): void {

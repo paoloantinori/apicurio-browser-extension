@@ -66,9 +66,9 @@ class ContentController {
     this.currentSpec = content;
     this.state = "detected";
 
-    const toolbar = this.adapter.getToolbarArea();
-    if (toolbar) {
-      this.toggleUI.mount(toolbar, (active) => {
+    const tabContainer = this.adapter.getTabContainer();
+    if (tabContainer) {
+      this.toggleUI.mount(tabContainer, (active) => {
         if (active) {
           this.activateViewer();
         } else {

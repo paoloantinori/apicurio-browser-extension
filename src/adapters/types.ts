@@ -43,6 +43,9 @@ export interface ISiteAdapter {
   /** Extracts owner, repo, branch, and full file path from the page URL, or null. */
   getRepoFilePath(): RepoFilePath | null;
 
+  /** Returns the tab/navigation container where our tab should be injected. */
+  getTabContainer(): HTMLElement | null;
+
   /**
    * Registers a callback for SPA navigation changes.
    * Handles platform-specific SPA mechanics (GitHub Turbo, GitLab pjax, etc.)
