@@ -105,9 +105,10 @@ export class ApicurioWrapper {
       return;
     }
 
-    const editingInfo: EditingInfo = {
+    const editingInfo = {
       content: spec,
       features,
+      openapi: { vendorExtensions: [] },
     };
 
     this.iframe.contentWindow.postMessage(

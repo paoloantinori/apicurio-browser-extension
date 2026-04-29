@@ -103,6 +103,7 @@ describe("ApicurioWrapper", () => {
           data: {
             content: spec,
             features: { allowImports: false, allowCustomValidations: false },
+            openapi: { vendorExtensions: [] },
           },
         },
         "*"
@@ -131,6 +132,7 @@ describe("ApicurioWrapper", () => {
           data: {
             content: spec,
             features: { allowImports: false, allowCustomValidations: false },
+            openapi: { vendorExtensions: [] },
           },
         },
         "*"
@@ -154,6 +156,7 @@ describe("ApicurioWrapper", () => {
           data: {
             content: spec,
             features: { allowImports: true, allowCustomValidations: false },
+            openapi: { vendorExtensions: [] },
           },
         },
         "*"
