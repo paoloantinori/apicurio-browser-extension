@@ -15,6 +15,7 @@ export class ViewerManager {
   private wrapper: ApicurioWrapper | null = null;
   private viewerContainer: HTMLElement | null = null;
   private isActive: boolean = false;
+  private disabledParent: HTMLElement | null = null;
 
   constructor(private adapter: ISiteAdapter, private platform: Platform) {}
 
@@ -35,10 +36,22 @@ export class ViewerManager {
     // Hide native code view
     codeContainer.style.display = "none";
 
+    // Disable pointer events on the parent container so sibling elements
+    // (line number gutters, overlays, copy buttons) can't intercept mouse
+    // events over the viewer. The viewer re-enables pointer-events for itself.
+    const parent = codeContainer.parentElement;
+    if (parent instanceof HTMLElement) {
+      parent.style.pointerEvents = "none";
+      this.disabledParent = parent;
+    }
+
     // Create viewer container
     this.viewerContainer = document.createElement("div");
     this.viewerContainer.style.width = "100%";
     this.viewerContainer.style.minHeight = "500px";
+    this.viewerContainer.style.position = "relative";
+    this.viewerContainer.style.zIndex = "10";
+    this.viewerContainer.style.pointerEvents = "auto";
 
     // Insert after the hidden code container
     codeContainer.parentNode?.insertBefore(
@@ -82,6 +95,10 @@ export class ViewerManager {
     const codeContainer = this.adapter.getCodeContainer();
     if (codeContainer) {
       codeContainer.style.display = "";
+    }
+    if (this.disabledParent) {
+      this.disabledParent.style.pointerEvents = "";
+      this.disabledParent = null;
     }
     this.isActive = false;
   }
