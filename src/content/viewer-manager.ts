@@ -48,29 +48,23 @@ export class ViewerManager {
     // Hide native code view
     codeContainer.style.display = "none";
 
-    // Hide sibling elements (line number gutters, etc.) that are outside
-    // the code container. GitHub renders line numbers in a separate <div>
-    // sibling of .react-code-lines.
-    const parent = codeContainer.parentElement;
-    if (parent instanceof HTMLElement) {
-      for (const child of Array.from(parent.children)) {
-        if (
-          child !== codeContainer &&
-          child instanceof HTMLElement &&
-          !child.hasAttribute("data-apicurio-viewer")
-        ) {
-          if (child.style.display !== "none") {
-            child.style.display = "none";
-            this.hiddenSiblings.push(child);
-          }
-        }
-      }
+    // Hide sibling elements (line number gutters, blame panels, etc.)
+    // that are outside the code container.
+    this.hideSiblings(codeContainer);
 
-      // Disable pointer events on the parent container so sibling elements
-      // (line number gutters, overlays, copy buttons) can't intercept mouse
-      // events over the viewer. The viewer re-enables pointer-events for itself.
-      parent.style.pointerEvents = "none";
-      this.disabledParent = parent;
+    // In blame view, the blame commit-info panel lives at an ancestor level.
+    // Walk up from codeContainer to find the blame-specific wrapper and hide
+    // its blame siblings (react-blame-segment-wrapper elements).
+    this.hideBlamePanel(codeContainer);
+
+    // Disable pointer events on the nearest ancestor that wraps both the
+    // code area and any blame panels, so nothing intercepts mouse events
+    // over the viewer.
+    const blobInner = codeContainer.closest("[class*='codeBlobInner']") as HTMLElement | null;
+    const pointerTarget = blobInner ?? codeContainer.parentElement;
+    if (pointerTarget) {
+      pointerTarget.style.pointerEvents = "none";
+      this.disabledParent = pointerTarget;
     }
 
     // Create viewer container
@@ -223,6 +217,40 @@ export class ViewerManager {
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
+
+  private hideSiblings(target: HTMLElement): void {
+    const parent = target.parentElement;
+    if (!parent) return;
+    for (const child of Array.from(parent.children)) {
+      if (
+        child !== target &&
+        child instanceof HTMLElement &&
+        !child.hasAttribute("data-apicurio-viewer")
+      ) {
+        if (child.style.display !== "none") {
+          child.style.display = "none";
+          this.hiddenSiblings.push(child);
+        }
+      }
+    }
+  }
+
+  private hideBlamePanel(codeContainer: HTMLElement): void {
+    // In blame view, blame segments are siblings of the .react-line-code-pairs
+    // container, which is an ancestor of the code lines. Walk up to find it.
+    const codePairs = codeContainer.closest("[class*='react-line-code-pairs']") as HTMLElement | null;
+    if (!codePairs) return;
+    const parent = codePairs.parentElement;
+    if (!parent) return;
+    for (const child of Array.from(parent.children)) {
+      if (child !== codePairs && child instanceof HTMLElement) {
+        if (child.style.display !== "none") {
+          child.style.display = "none";
+          this.hiddenSiblings.push(child);
+        }
+      }
+    }
+  }
 
   private restoreCodeContainer(): void {
     const codeContainer = this.adapter.getCodeContainer();
