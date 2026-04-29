@@ -10,13 +10,11 @@ export class GitHubAdapter implements ISiteAdapter {
   // ---- File view detection ----
 
   isFileView(): boolean {
-    // Primary: modern React code view
-    if (document.querySelector('[data-testid="blob-file"]')) return true;
-    if (document.querySelector(".react-code-view")) return true;
+    // Primary: code cells present in file blob view
+    if (document.querySelector('[data-testid="code-cell"]')) return true;
 
-    // Fallback: legacy code view container
-    const legacyBox = document.querySelector('.Box[itemprop="text"]');
-    if (legacyBox) return true;
+    // Fallback: react code lines container
+    if (document.querySelector(".react-code-lines")) return true;
 
     return false;
   }
@@ -24,7 +22,15 @@ export class GitHubAdapter implements ISiteAdapter {
   // ---- File name extraction ----
 
   getFileName(): string | null {
-    // Try breadcrumbs first
+    // Primary: dedicated filename testid
+    const filenameEl = document.querySelector(
+      '[data-testid="breadcrumbs-filename"]'
+    );
+    if (filenameEl?.textContent?.trim()) {
+      return filenameEl.textContent.trim();
+    }
+
+    // Fallback: last breadcrumb item
     const breadcrumbList = document.querySelector(
       '[data-testid="breadcrumbs"]'
     );
@@ -97,21 +103,17 @@ export class GitHubAdapter implements ISiteAdapter {
   // ---- Toolbar area ----
 
   getToolbarArea(): HTMLElement | null {
-    // Primary: modern code view header
-    const header = document.querySelector(
-      '[data-testid="code-view-header"]'
+    // Primary: action buttons area in blob header
+    const actions = document.querySelector(
+      ".react-blob-header-edit-and-raw-actions"
     );
-    if (header instanceof HTMLElement) return header;
+    if (actions instanceof HTMLElement) return actions;
 
-    // Fallback: Box-header flex container
-    const boxHeader = document.querySelector(
-      ".Box-header .d-flex"
+    // Fallback: sticky header area
+    const stickyHeader = document.querySelector(
+      ".react-blob-view-header-sticky"
     );
-    if (boxHeader instanceof HTMLElement) return boxHeader;
-
-    // Legacy: file actions area
-    const fileActions = document.querySelector(".file-actions");
-    if (fileActions instanceof HTMLElement) return fileActions;
+    if (stickyHeader instanceof HTMLElement) return stickyHeader;
 
     return null;
   }
@@ -119,15 +121,16 @@ export class GitHubAdapter implements ISiteAdapter {
   // ---- Code container ----
 
   getCodeContainer(): HTMLElement | null {
-    // Same elements used for file view detection
-    const primary = document.querySelector('[data-testid="blob-file"]');
-    if (primary instanceof HTMLElement) return primary;
+    // Primary: blob content wrapper
+    const blobContent = document.querySelector(
+      ".react-code-lines"
+    );
+    if (blobContent instanceof HTMLElement) return blobContent;
 
-    const reactView = document.querySelector(".react-code-view");
-    if (reactView instanceof HTMLElement) return reactView;
-
-    const legacyBox = document.querySelector('.Box[itemprop="text"]');
-    if (legacyBox instanceof HTMLElement) return legacyBox;
+    // Fallback: any code-cell parent
+    const codeCell = document.querySelector('[data-testid="code-cell"]');
+    if (codeCell?.parentElement instanceof HTMLElement)
+      return codeCell.parentElement;
 
     return null;
   }

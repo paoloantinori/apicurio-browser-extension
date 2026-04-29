@@ -3,14 +3,9 @@ import { GitHubAdapter } from "../src/adapters/github";
 
 // Provide a minimal HTMLElement global so that `instanceof HTMLElement` checks
 // in the adapter source code do not throw in the Node.js test environment.
-// Stubs that need to pass the check must set their prototype accordingly.
 class MinimalHTMLElement {}
 (globalThis as any).HTMLElement = MinimalHTMLElement;
 
-/**
- * Creates a stub element with textContent and tagName.
- * If `isHTMLElement` is true, sets the prototype so `instanceof HTMLElement` passes.
- */
 function stubElement(tagName: string, textContent?: string, isHTMLElement: boolean = false): any {
   const el: any = {
     tagName: tagName.toUpperCase(),
@@ -52,35 +47,25 @@ describe("GitHubAdapter", () => {
   // ---- isFileView ----
 
   describe("isFileView()", () => {
-    it("returns true when [data-testid='blob-file'] element exists", () => {
+    it("returns true when [data-testid='code-cell'] exists", () => {
       mockDocumentWithSelectorMap({
-        '[data-testid="blob-file"]': stubElement("div"),
+        '[data-testid="code-cell"]': stubElement("div"),
       });
       expect(adapter.isFileView()).toBe(true);
     });
 
-    it("returns true when .react-code-view element exists", () => {
+    it("returns true when .react-code-lines exists", () => {
       mockDocumentWithSelectorMap({
-        '[data-testid="blob-file"]': null,
-        ".react-code-view": stubElement("div"),
-      });
-      expect(adapter.isFileView()).toBe(true);
-    });
-
-    it("returns true when legacy .Box[itemprop='text'] element exists", () => {
-      mockDocumentWithSelectorMap({
-        '[data-testid="blob-file"]': null,
-        ".react-code-view": null,
-        '.Box[itemprop="text"]': stubElement("div"),
+        '[data-testid="code-cell"]': null,
+        ".react-code-lines": stubElement("div"),
       });
       expect(adapter.isFileView()).toBe(true);
     });
 
     it("returns false when no matching elements", () => {
       mockDocumentWithSelectorMap({
-        '[data-testid="blob-file"]': null,
-        ".react-code-view": null,
-        '.Box[itemprop="text"]': null,
+        '[data-testid="code-cell"]': null,
+        ".react-code-lines": null,
       });
       expect(adapter.isFileView()).toBe(false);
     });
@@ -98,8 +83,30 @@ describe("GitHubAdapter", () => {
       } as any;
     }
 
-    it("extracts filename from URL /owner/repo/blob/main/openapi.json", () => {
+    it("extracts filename from breadcrumbs-filename element", () => {
       mockDocumentWithSelectorMap({
+        '[data-testid="breadcrumbs-filename"]': stubElement("span", "openapi.json"),
+      });
+      expect(adapter.getFileName()).toBe("openapi.json");
+    });
+
+    it("falls back to last breadcrumb li when no breadcrumbs-filename", () => {
+      const li = stubElement("li", "spec.yaml");
+      const breadcrumbList = {
+        querySelectorAll: vi.fn().mockReturnValue([li]),
+      };
+
+      mockDocumentWithSelectorMap({
+        '[data-testid="breadcrumbs-filename"]': null,
+        '[data-testid="breadcrumbs"]': breadcrumbList,
+      });
+
+      expect(adapter.getFileName()).toBe("spec.yaml");
+    });
+
+    it("falls back to URL parsing when no breadcrumbs", () => {
+      mockDocumentWithSelectorMap({
+        '[data-testid="breadcrumbs-filename"]': null,
         '[data-testid="breadcrumbs"]': null,
       });
       mockWindowLocation("/owner/repo/blob/main/openapi.json");
@@ -109,6 +116,7 @@ describe("GitHubAdapter", () => {
 
     it("extracts filename from nested path URL", () => {
       mockDocumentWithSelectorMap({
+        '[data-testid="breadcrumbs-filename"]': null,
         '[data-testid="breadcrumbs"]': null,
       });
       mockWindowLocation("/owner/repo/blob/main/docs/api/spec.yaml");
@@ -118,24 +126,12 @@ describe("GitHubAdapter", () => {
 
     it("returns null for non-blob URLs", () => {
       mockDocumentWithSelectorMap({
+        '[data-testid="breadcrumbs-filename"]': null,
         '[data-testid="breadcrumbs"]': null,
       });
       mockWindowLocation("/owner/repo");
 
       expect(adapter.getFileName()).toBeNull();
-    });
-
-    it("extracts filename from breadcrumbs when available", () => {
-      const li = stubElement("li", "openapi.json");
-      const breadcrumbList = {
-        querySelectorAll: vi.fn().mockReturnValue([li]),
-      };
-
-      mockDocumentWithSelectorMap({
-        '[data-testid="breadcrumbs"]': breadcrumbList,
-      });
-
-      expect(adapter.getFileName()).toBe("openapi.json");
     });
   });
 
@@ -189,31 +185,28 @@ describe("GitHubAdapter", () => {
   // ---- getToolbarArea ----
 
   describe("getToolbarArea()", () => {
-    it("returns the code-view-header element when found", () => {
-      const headerEl = stubElement("div", undefined, true);
+    it("returns the react-blob-header-edit-and-raw-actions element when found", () => {
+      const el = stubElement("div", undefined, true);
       mockDocumentWithSelectorMap({
-        '[data-testid="code-view-header"]': headerEl,
-        ".Box-header .d-flex": null,
-        ".file-actions": null,
+        ".react-blob-header-edit-and-raw-actions": el,
+        ".react-blob-view-header-sticky": null,
       });
-      expect(adapter.getToolbarArea()).toBe(headerEl);
+      expect(adapter.getToolbarArea()).toBe(el);
     });
 
     it("returns null when element is not an HTMLElement instance", () => {
-      const headerEl = stubElement("div"); // not an HTMLElement
+      const el = stubElement("div"); // not an HTMLElement
       mockDocumentWithSelectorMap({
-        '[data-testid="code-view-header"]': headerEl,
-        ".Box-header .d-flex": headerEl,
-        ".file-actions": headerEl,
+        ".react-blob-header-edit-and-raw-actions": el,
+        ".react-blob-view-header-sticky": el,
       });
       expect(adapter.getToolbarArea()).toBeNull();
     });
 
     it("returns null when no toolbar found", () => {
       mockDocumentWithSelectorMap({
-        '[data-testid="code-view-header"]': null,
-        ".Box-header .d-flex": null,
-        ".file-actions": null,
+        ".react-blob-header-edit-and-raw-actions": null,
+        ".react-blob-view-header-sticky": null,
       });
       expect(adapter.getToolbarArea()).toBeNull();
     });
@@ -233,6 +226,7 @@ describe("GitHubAdapter", () => {
 
     it("returns 'json' for 'openapi.json'", () => {
       mockDocumentWithSelectorMap({
+        '[data-testid="breadcrumbs-filename"]': null,
         '[data-testid="breadcrumbs"]': null,
       });
       mockWindowLocation("/owner/repo/blob/main/openapi.json");
@@ -242,6 +236,7 @@ describe("GitHubAdapter", () => {
 
     it("returns 'yaml' for 'swagger.yaml'", () => {
       mockDocumentWithSelectorMap({
+        '[data-testid="breadcrumbs-filename"]': null,
         '[data-testid="breadcrumbs"]': null,
       });
       mockWindowLocation("/owner/repo/blob/main/swagger.yaml");
@@ -251,6 +246,7 @@ describe("GitHubAdapter", () => {
 
     it("returns null when no filename available", () => {
       mockDocumentWithSelectorMap({
+        '[data-testid="breadcrumbs-filename"]': null,
         '[data-testid="breadcrumbs"]': null,
       });
       mockWindowLocation("/owner/repo");
@@ -262,32 +258,26 @@ describe("GitHubAdapter", () => {
   // ---- getCodeContainer ----
 
   describe("getCodeContainer()", () => {
-    it("returns the blob-file element when it is an HTMLElement", () => {
+    it("returns .react-code-lines when it is an HTMLElement", () => {
       const el = stubElement("div", undefined, true);
       mockDocumentWithSelectorMap({
-        '[data-testid="blob-file"]': el,
-        ".react-code-view": null,
-        '.Box[itemprop="text"]': null,
+        ".react-code-lines": el,
       });
       expect(adapter.getCodeContainer()).toBe(el);
     });
 
-    it("returns null when element is not an HTMLElement instance", () => {
-      const el = stubElement("div"); // not an HTMLElement
+    it("returns code-cell parent when no react-code-lines", () => {
+      const parentEl = stubElement("div", undefined, true);
+      const codeCell = { ...stubElement("div"), parentElement: parentEl };
       mockDocumentWithSelectorMap({
-        '[data-testid="blob-file"]': el,
-        ".react-code-view": el,
-        '.Box[itemprop="text"]': el,
+        ".react-code-lines": null,
+        '[data-testid="code-cell"]': codeCell,
       });
-      expect(adapter.getCodeContainer()).toBeNull();
+      expect(adapter.getCodeContainer()).toBe(parentEl);
     });
 
     it("returns null when no selectors match at all", () => {
-      mockDocumentWithSelectorMap({
-        '[data-testid="blob-file"]': null,
-        ".react-code-view": null,
-        '.Box[itemprop="text"]': null,
-      });
+      mockDocumentWithSelectorMap({});
       expect(adapter.getCodeContainer()).toBeNull();
     });
   });

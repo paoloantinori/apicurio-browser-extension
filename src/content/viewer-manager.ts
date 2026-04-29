@@ -1,4 +1,5 @@
 import browser from "webextension-polyfill";
+import yaml from "js-yaml";
 import { ISiteAdapter } from "../adapters/types";
 import { ApicurioWrapper, ApicurioSpec } from "../core/apicurio-wrapper";
 
@@ -48,7 +49,10 @@ export class ViewerManager {
     this.wrapper = new ApicurioWrapper(this.viewerContainer);
     this.wrapper.init(browser.runtime.getURL("viewer/index.html"));
 
-    const spec: ApicurioSpec = { type: specType, value: specContent };
+    const spec: ApicurioSpec = {
+      type: specType,
+      value: this.toJsonString(specContent),
+    };
     this.wrapper.loadSpec(spec);
 
     this.isActive = true;
@@ -75,6 +79,15 @@ export class ViewerManager {
       codeContainer.style.display = "";
     }
     this.isActive = false;
+  }
+
+  private toJsonString(content: string): string {
+    try {
+      JSON.parse(content);
+      return content;
+    } catch {
+      return JSON.stringify(yaml.load(content));
+    }
   }
 
   private removeViewer(): void {
