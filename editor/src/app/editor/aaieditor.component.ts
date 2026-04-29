@@ -261,6 +261,7 @@ export class AaiEditorComponent extends AbstractApiEditorComponent implements On
             }
             this.validateModel();
             let sourceJs: any = Library.writeNode(this._document);
+            // @ts-ignore - safeDump is a backwards-compat alias for dump in js-yaml v4
             this.sourceValue = YAML.safeDump(sourceJs, {
                 indent: 4,
                 lineWidth: 110,

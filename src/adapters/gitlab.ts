@@ -1,4 +1,4 @@
-import { type ISiteAdapter, extractFileExtension } from "./types";
+import { type ISiteAdapter, type RepoFilePath, extractFileExtension } from "./types";
 
 /**
  * GitLab site adapter for interacting with GitLab's DOM.
@@ -71,6 +71,25 @@ export class GitLabAdapter implements ISiteAdapter {
   getFileExtension(): string | null {
     const fileName = this.getFileName();
     return fileName ? extractFileExtension(fileName) : null;
+  }
+
+  getRepoFilePath(): RepoFilePath | null {
+    const url = window.location.href;
+    const blobMatch = url.match(/\/-\/blob\/([^/]+)\/(.+?)(?:\?|#|$)/);
+    if (!blobMatch) return null;
+    try {
+      const parsed = new URL(url);
+      const parts = parsed.pathname.split("/").filter(Boolean);
+      const blobIdx = parts.indexOf("-");
+      if (blobIdx < 2 || parts[blobIdx + 1] !== "blob") return null;
+      return {
+        owner: parts.slice(0, blobIdx - 1).join("/") || parts[0],
+        repo: parts[blobIdx - 1],
+        branch: blobMatch[1],
+        filePath: blobMatch[2],
+      };
+    } catch {}
+    return null;
   }
 
   onNavigationChange(callback: (url: string) => void): void {

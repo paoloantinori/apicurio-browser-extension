@@ -1,4 +1,4 @@
-import { type ISiteAdapter, extractFileExtension } from "./types";
+import { type ISiteAdapter, type RepoFilePath, extractFileExtension } from "./types";
 
 /**
  * GitHub site adapter for interacting with GitHub's DOM.
@@ -140,6 +140,23 @@ export class GitHubAdapter implements ISiteAdapter {
   getFileExtension(): string | null {
     const fileName = this.getFileName();
     return fileName ? extractFileExtension(fileName) : null;
+  }
+
+  getRepoFilePath(): RepoFilePath | null {
+    try {
+      const url = new URL(window.location.href);
+      const parts = url.pathname.split("/").filter(Boolean);
+      // /owner/repo/blob/branch/path/to/file.ext
+      if (parts.length >= 5 && parts[2] === "blob") {
+        return {
+          owner: parts[0],
+          repo: parts[1],
+          branch: parts[3],
+          filePath: parts.slice(4).join("/"),
+        };
+      }
+    } catch {}
+    return null;
   }
 
   // ---- SPA navigation change ----

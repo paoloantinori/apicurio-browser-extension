@@ -281,4 +281,33 @@ describe("GitHubAdapter", () => {
       expect(adapter.getCodeContainer()).toBeNull();
     });
   });
+
+  // ---- getRepoFilePath ----
+
+  describe("getRepoFilePath()", () => {
+    it("extracts owner, repo, branch, and filePath from blob URL", () => {
+      globalThis.window = {
+        location: {
+          href: "https://github.com/owner/repo/blob/main/docs/api/spec.yaml",
+        },
+      } as any;
+
+      expect(adapter.getRepoFilePath()).toEqual({
+        owner: "owner",
+        repo: "repo",
+        branch: "main",
+        filePath: "docs/api/spec.yaml",
+      });
+    });
+
+    it("returns null for non-blob URLs", () => {
+      globalThis.window = {
+        location: {
+          href: "https://github.com/owner/repo",
+        },
+      } as any;
+
+      expect(adapter.getRepoFilePath()).toBeNull();
+    });
+  });
 });

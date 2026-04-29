@@ -32,6 +32,7 @@ export class AsyncApiEditorComponent implements EditorComponent {
 
     // @ts-ignore
     @Input() api: ApiDefinition;
+    @Input() contentFetcher: (externalReference: string) => Promise<any>;
 
     @ViewChild("apiEditor") apiEditor: AaiEditorComponent | undefined;
 

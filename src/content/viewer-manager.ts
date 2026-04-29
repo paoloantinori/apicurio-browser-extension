@@ -1,7 +1,8 @@
 import browser from "webextension-polyfill";
 import yaml from "js-yaml";
 import { ISiteAdapter } from "../adapters/types";
-import { ApicurioWrapper, ApicurioSpec } from "../core/apicurio-wrapper";
+import { ApicurioWrapper, ApicurioSpec, WrapperContext } from "../core/apicurio-wrapper";
+import type { Platform } from "../core/ref-resolver";
 
 /**
  * Manages DOM manipulation for switching between the native code view
@@ -15,7 +16,7 @@ export class ViewerManager {
   private viewerContainer: HTMLElement | null = null;
   private isActive: boolean = false;
 
-  constructor(private adapter: ISiteAdapter) {}
+  constructor(private adapter: ISiteAdapter, private platform: Platform) {}
 
   /**
    * Hide the native code container and display the Apicurio viewer
@@ -45,8 +46,12 @@ export class ViewerManager {
       codeContainer.nextSibling
     );
 
-    // Initialise Apicurio wrapper
-    this.wrapper = new ApicurioWrapper(this.viewerContainer);
+    // Initialise Apicurio wrapper with repo context for external ref resolution
+    const context: WrapperContext = {
+      platform: this.platform,
+      repoFilePath: this.adapter.getRepoFilePath(),
+    };
+    this.wrapper = new ApicurioWrapper(this.viewerContainer, context);
     this.wrapper.init(browser.runtime.getURL("viewer/index.html"));
 
     const spec: ApicurioSpec = {

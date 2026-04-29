@@ -36,7 +36,7 @@ class ContentController {
   constructor(adapter: ISiteAdapter, platform: string) {
     this.adapter = adapter;
     this.platform = platform;
-    this.viewerManager = new ViewerManager(adapter);
+    this.viewerManager = new ViewerManager(adapter, platform.split(".")[0] as "github" | "gitlab");
   }
 
   async runPipeline(): Promise<void> {

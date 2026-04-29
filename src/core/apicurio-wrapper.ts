@@ -1,3 +1,6 @@
+import type { RepoFilePath } from "../adapters/types";
+import { resolveExternalRef, type Platform } from "./ref-resolver";
+
 export interface ApicurioSpec {
   type: "OPENAPI" | "ASYNCAPI";
   value: string;
@@ -11,6 +14,11 @@ export interface EditingFeatures {
 export interface EditingInfo {
   content: ApicurioSpec;
   features: EditingFeatures;
+}
+
+export interface WrapperContext {
+  platform: Platform;
+  repoFilePath: RepoFilePath | null;
 }
 
 const DEFAULT_FEATURES: EditingFeatures = {
@@ -28,9 +36,11 @@ export class ApicurioWrapper {
     spec: ApicurioSpec;
     features: EditingFeatures;
   } | null = null;
+  private context: WrapperContext | null;
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, context?: WrapperContext) {
     this.container = container;
+    this.context = context ?? null;
   }
 
   init(viewerUrl: string): void {
@@ -121,11 +131,16 @@ export class ApicurioWrapper {
   }
 
   private handleMessage(event: MessageEvent): void {
-    if (
-      typeof event.data !== "object" ||
-      event.data === null ||
-      event.data.type !== "apicurio_onChange"
-    ) {
+    if (typeof event.data !== "object" || event.data === null) {
+      return;
+    }
+
+    if (event.data.type === "apicurio_fetchContent" && event.data.data) {
+      this.handleFetchContent(event.data.data);
+      return;
+    }
+
+    if (event.data.type !== "apicurio_onChange") {
       return;
     }
 
@@ -143,6 +158,46 @@ export class ApicurioWrapper {
 
     for (const callback of this.changeCallbacks) {
       callback(spec);
+    }
+  }
+
+  private async handleFetchContent(data: { requestId: string; externalReference: string }): Promise<void> {
+    if (!this.iframe?.contentWindow) return;
+
+    const { requestId, externalReference } = data;
+
+    if (!this.context?.repoFilePath) {
+      this.iframe.contentWindow.postMessage({
+        type: "apicurio_fetchContentError",
+        data: { requestId, error: "No repository context available" },
+      }, "*");
+      return;
+    }
+
+    try {
+      const rawUrl = resolveExternalRef(
+        externalReference,
+        this.context.repoFilePath,
+        this.context.platform
+      );
+
+      const response = await fetch(rawUrl, { signal: AbortSignal.timeout(10000) });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const content = await response.text();
+
+      this.iframe.contentWindow.postMessage({
+        type: "apicurio_fetchContentResponse",
+        data: { requestId, content },
+      }, "*");
+    } catch (err) {
+      this.iframe.contentWindow.postMessage({
+        type: "apicurio_fetchContentError",
+        data: { requestId, error: String(err) },
+      }, "*");
     }
   }
 }

@@ -13,6 +13,14 @@ export function extractFileExtension(fileName: string): string | null {
   return fileName.slice(dotIndex + 1).toLowerCase();
 }
 
+/** Repository file path info extracted from the page URL. */
+export interface RepoFilePath {
+  owner: string;
+  repo: string;
+  branch: string;
+  filePath: string;
+}
+
 export interface ISiteAdapter {
   /** Returns true only when viewing a single file (not directory, diff, or PR) */
   isFileView(): boolean;
@@ -31,6 +39,9 @@ export interface ISiteAdapter {
 
   /** Extracts the file extension (e.g. "yaml", "json") or null if not determinable */
   getFileExtension(): string | null;
+
+  /** Extracts owner, repo, branch, and full file path from the page URL, or null. */
+  getRepoFilePath(): RepoFilePath | null;
 
   /**
    * Registers a callback for SPA navigation changes.

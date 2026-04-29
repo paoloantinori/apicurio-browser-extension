@@ -22,6 +22,12 @@ import {EditingInfo} from "./models/editingInfo.model";
 import {EditorComponent} from "./components/editors/editor.component";
 import {ApiDefinition} from "./editor/_models/api.model";
 
+interface PendingRequest {
+    resolve: (value: any) => void;
+    reject: (reason: any) => void;
+    timer: any;
+}
+
 @Component({
     selector: "app-root",
     templateUrl: "./app.component.html",
@@ -37,10 +43,13 @@ export class AppComponent {
 
     config: EditingInfo;
 
+    private pendingFetches: Map<string, PendingRequest> = new Map();
+
     @ViewChild("openapiEditor") openapiEditor: EditorComponent | undefined;
     @ViewChild("asyncapiEditor") asyncapiEditor: EditorComponent | undefined;
 
     constructor(private logger: LoggerService, private configService: ConfigService) {
+        this.listenForFetchResponses();
         configService.get().then(cfg => {
             this.config = cfg;
             this.initContent();
@@ -77,4 +86,51 @@ export class AppComponent {
         return this.config.content.type === "OPENAPI" ? this.openapiEditor : this.asyncapiEditor;
     }
 
+    /**
+     * Content fetcher that resolves external $ref references by requesting
+     * the parent frame to fetch the content via postMessage.
+     */
+    contentFetcher = (externalReference: string): Promise<any> => {
+        return new Promise<any>((resolve, reject) => {
+            const requestId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+            const timer = setTimeout(() => {
+                this.pendingFetches.delete(requestId);
+                reject(new Error("Fetch timeout for: " + externalReference));
+            }, 10000);
+
+            this.pendingFetches.set(requestId, { resolve, reject, timer });
+
+            window.parent.postMessage({
+                type: "apicurio_fetchContent",
+                data: { requestId, externalReference }
+            }, "*");
+        });
+    };
+
+    private listenForFetchResponses(): void {
+        window.addEventListener("message", (evt: MessageEvent) => {
+            const data = evt.data;
+            if (!data || typeof data !== "object") return;
+
+            if (data.type === "apicurio_fetchContentResponse" && data.data) {
+                const { requestId, content } = data.data;
+                const pending = this.pendingFetches.get(requestId);
+                if (pending) {
+                    clearTimeout(pending.timer);
+                    this.pendingFetches.delete(requestId);
+                    pending.resolve(content);
+                }
+            }
+
+            if (data.type === "apicurio_fetchContentError" && data.data) {
+                const { requestId, error } = data.data;
+                const pending = this.pendingFetches.get(requestId);
+                if (pending) {
+                    clearTimeout(pending.timer);
+                    this.pendingFetches.delete(requestId);
+                    pending.reject(new Error(error || "Unknown fetch error"));
+                }
+            }
+        });
+    }
 }

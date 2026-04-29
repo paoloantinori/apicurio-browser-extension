@@ -34,6 +34,7 @@ export class OpenApiEditorComponent implements EditorComponent {
 
     @Input() api: ApiDefinition;
     @Input() config: EditingInfo;
+    @Input() contentFetcher: (externalReference: string) => Promise<any>;
 
     @ViewChild("apiEditor") apiEditor: OaiEditorComponent | undefined;
 
