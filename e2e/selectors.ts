@@ -44,8 +44,8 @@ export const EXT = {
   VIEWER_CONTAINER: "div[data-apicurio-viewer]",
   /** Save toolbar */
   SAVE_TOOLBAR: "#apicurio-save-toolbar",
-  /** Save toolbar style */
-  SAVE_TOOLBAR_STYLE: "#apicurio-save-toolbar-style",
+  /** Save toolbar style element ID */
+  SAVE_TOOLBAR_STYLE_ID: "apicurio-save-toolbar-style",
 } as const;
 
 // Test URLs

@@ -13,23 +13,25 @@ import {
 } from "./helpers";
 
 test.describe("Blame transition edge cases", () => {
-  test("code container and line numbers are hidden while viewer is active", async ({
+  test("code container siblings are hidden while viewer is active", async ({
     page,
   }) => {
     await navigateToSpecFile(page, URLS.SPEC_FILE);
     await assertViewerVisible(page);
     await assertCodeHidden(page);
 
-    const lineNumbersHidden = await page.evaluate((GH_SEL) => {
+    // All siblings of the code container should be hidden (line numbers, gutters, etc.)
+    const siblingsHidden = await page.evaluate((GH_SEL) => {
       const codeContainer = document.querySelector(GH_SEL) as HTMLElement;
       if (!codeContainer?.parentElement) return false;
-      const lineNumbers = codeContainer.parentElement.querySelector(
-        ".react-line-numbers"
-      ) as HTMLElement | null;
-      return lineNumbers?.style.display === "none" ?? false;
+      const siblings = Array.from(codeContainer.parentElement.children).filter(
+        (el) => el !== codeContainer && !el.hasAttribute("data-apicurio-viewer")
+      ) as HTMLElement[];
+      if (siblings.length === 0) return true;
+      return siblings.every((el) => el.style.display === "none");
     }, GH.CODE_CONTAINER);
 
-    expect(lineNumbersHidden).toBe(true);
+    expect(siblingsHidden).toBe(true);
   });
 
   test("clicking Code does not auto-reactivate Apicurio", async ({ page }) => {

@@ -145,3 +145,70 @@ export async function navigateToSpecFile(
   await page.goto(url, { waitUntil: "domcontentloaded" });
   return waitForApicurioTab(page);
 }
+
+// ---------------------------------------------------------------------------
+// Save toolbar helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Assert the save toolbar is present in the DOM.
+ */
+export async function assertSaveToolbarPresent(page: Page): Promise<void> {
+  const toolbar = page.locator(EXT.SAVE_TOOLBAR);
+  await expect(toolbar).toHaveCount(1);
+}
+
+/**
+ * Assert the save toolbar is absent from the DOM.
+ */
+export async function assertSaveToolbarAbsent(page: Page): Promise<void> {
+  const toolbar = page.locator(EXT.SAVE_TOOLBAR);
+  await expect(toolbar).toHaveCount(0);
+}
+
+/**
+ * Assert the save toolbar style block is injected in <head>.
+ */
+export async function assertSaveToolbarStyleInjected(page: Page): Promise<void> {
+  const style = page.locator(`#${EXT.SAVE_TOOLBAR_STYLE_ID}`);
+  await expect(style).toHaveCount(1);
+}
+
+/**
+ * Assert the save toolbar style block is removed.
+ */
+export async function assertSaveToolbarStyleRemoved(page: Page): Promise<void> {
+  const style = page.locator(`#${EXT.SAVE_TOOLBAR_STYLE_ID}`);
+  await expect(style).toHaveCount(0);
+}
+
+/**
+ * Get the save button state via direct DOM evaluation.
+ * Returns { text, disabled, className }.
+ */
+export async function getSaveButtonState(
+  page: Page
+): Promise<{ text: string; disabled: boolean; className: string }> {
+  return page.evaluate((sel) => {
+    const toolbar = document.querySelector(sel);
+    if (!toolbar) return { text: "", disabled: true, className: "" };
+    const btn = toolbar.querySelector("button.apicurio-save-btn");
+    return {
+      text: btn?.textContent?.trim() ?? "",
+      disabled: btn?.disabled ?? true,
+      className: btn?.className ?? "",
+    };
+  }, EXT.SAVE_TOOLBAR);
+}
+
+/**
+ * Get the status text content from the save toolbar.
+ */
+export async function getStatusText(page: Page): Promise<string> {
+  return page.evaluate((sel) => {
+    const toolbar = document.querySelector(sel);
+    if (!toolbar) return "";
+    const span = toolbar.querySelector(".apicurio-status-text");
+    return span?.textContent?.trim() ?? "";
+  }, EXT.SAVE_TOOLBAR);
+}
