@@ -32,6 +32,7 @@ class ContentController {
   private toggleUI = new ToggleUI();
   private viewerManager: ViewerManager;
   private currentSpec: string | null = null;
+  private userDismissed: boolean = false;
 
   constructor(adapter: ISiteAdapter, platform: string) {
     this.adapter = adapter;
@@ -70,14 +71,16 @@ class ContentController {
     if (tabContainer) {
       this.toggleUI.mount(tabContainer, (active) => {
         if (active) {
+          this.userDismissed = false;
           this.activateViewer();
         } else {
+          this.userDismissed = true;
           this.deactivateViewer();
         }
       });
     }
 
-    if (settings.autoRender) {
+    if (settings.autoRender && !this.userDismissed) {
       await this.activateViewer();
     }
   }

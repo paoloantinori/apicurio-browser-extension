@@ -36,6 +36,13 @@ function copyEditorAssets(): Plugin {
         html = html.replace(/<link[^>]*unpkg\.com[^>]*>\n?/g, "");
         writeFileSync(indexPath, html);
       }
+
+      // Copy icons directory
+      const iconsSrc = resolve(__dirname, "src", "icons");
+      if (existsSync(iconsSrc)) {
+        const iconsDest = resolve(__dirname, "dist", target, "icons");
+        cpSync(iconsSrc, iconsDest, { recursive: true });
+      }
     },
   };
 }
