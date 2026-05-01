@@ -56,4 +56,7 @@ export const URLS = {
   /** Non-spec file for negative tests */
   NON_SPEC_FILE:
     "https://github.com/paoloantinori/apicurio-browser-extension/blob/master/package.json",
+  /** Spec file on the test branch (for write-back tests) */
+  WRITABLE_SPEC:
+    "https://github.com/paoloantinori/apicurio-browser-extension/blob/e2e-test-writes/petstore.yaml",
 } as const;

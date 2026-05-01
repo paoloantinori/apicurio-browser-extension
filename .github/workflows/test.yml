@@ -1,0 +1,96 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test
+
+  e2e-tests:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build editor
+        run: npm run build:editor
+
+      - name: Build Chrome extension
+        run: npm run build:chrome
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
+
+      - name: Run E2E tests (no auth required)
+        run: xvfb-run npx playwright test e2e/blame-transition.spec.ts e2e/tab-switching.spec.ts e2e/tab-visual-state.spec.ts e2e/save-toolbar.spec.ts
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  e2e-write-tests:
+    name: E2E write-back tests
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build editor
+        run: npm run build:editor
+
+      - name: Build Chrome extension
+        run: npm run build:chrome
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
+
+      - name: Run write-back E2E tests
+        run: xvfb-run npx playwright test e2e/write-back.spec.ts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-write-report
+          path: playwright-report/
+          retention-days: 7
